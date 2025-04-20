@@ -1,0 +1,37 @@
+_target_: mettagrid.map.mapgen.MapGen
+
+width: ${uniform:20,80,40}
+height: ${uniform:20,80,40}
+
+root:
+  _target_: mettagrid.map.scenes.room_grid.RoomGrid
+  rows: 3
+  columns: 3
+
+  children:
+  - scene:
+      _target_: mettagrid.map.scenes.simplex_sampler.SimplexSampler
+      layers:
+      - fn : mettagrid.map.scenes.simplex_sampler.fn6   # randomly rotated cross with random curse
+        saturation: ${choose:2,3}
+        params:
+          lx: ${uniform:0.0010,0.002}                   # scaling along x
+          ly: ${uniform:0.0010,0.002}                   # scaling along y
+          t: ${uniform:0,1}                             # additional rotation in 2*pi radians
+          x_pow: ${choose:0,2,3,4,5}                    # x power
+          y_pow: ${choose:1,2,3,4,5}                    # y power
+          xc: ${triangular:-0.6,0.0,0.6}                # x off-center
+          yc: ${triangular:-0.6,0.0,0.6}                # y off-center
+      - fn : mettagrid.map.scenes.simplex_sampler.fn0   # random noise
+        saturation: ${uniform:0.0,1.5}
+        params:
+          lx: ${uniform:0.01,0.5}                       # scaling along x
+          ly: ${uniform:0.01,0.5}                       # scaling along y
+
+      cutoff: ${uniform:20,110}                         # cutoff treshold less number -> less walls
+
+  # - where: full
+  #   scene:
+  #       _target_: mettagrid.map.scenes.make_connected.MakeConnected
+
+
