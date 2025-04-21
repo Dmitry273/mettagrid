@@ -88,11 +88,23 @@ def fn4(x, y, width, height,
 
     return (xi*lx, yi*ly)
 
-def fn5(x,y, width, height, M, **args) -> tuple[float, float]:
-    # currently unused
-    octave = [0.5,0.5]
-    xi = (x-M*width)**2 * octave[0]
-    yi = (y-0.5*height)**2 * octave[1]
+def fn5(x,y, width, height, 
+        lx:float = 1.5,
+        ly:float = 1.5, 
+        ox:int = 3,
+        oy:int = 3,
+        px:int = 0,
+        py:int = 0,
+        ) -> tuple[float, float]:
+    # function used in "tilted_lattice_world" generator
+
+    if (x+y)%ox <= px or (x-y)%oy <= py:
+        if (x+y)%ox <= px:
+            xi, yi = lx*(x+y), ly*((x-y)-(x-y)%oy)
+        else:
+            xi, yi = lx*((x+y)-(x+y)*ox), ly*(x-y)
+    else:
+        xi, yi = 0, 0
 
     return (xi, yi)
 
@@ -140,6 +152,46 @@ def fn7(x,y, width, height,
     xi, yi = (cs*(xi-0.5*width+xc*width) - sn*(yi-0.5*height+yc*height)), (sn*(xi-0.5*width+xc*width) + cs*(yi-0.5*height+yc*height))
  
     return (xi*lx, yi*ly)
+
+def fn8(x,y, width, height, 
+        lx:float = 1.5,
+        ly:float = 1.5, 
+        ox:int = 3,
+        oy:int = 3,
+        px:int = 0,
+        py:int = 0,
+        ) -> tuple[float, float]:
+    # function used in "napkin" generator
+
+    if (x+y)%ox <= px or (x-y)%oy <= py:
+        if (x+y)%ox <= px:
+            xi, yi = lx*(x+y), ly*((x+y)-(x+y)%ox)
+        else:
+            xi, yi = lx*((x-y)-(x-y)*oy), ly*(x-y)
+    else:
+        xi, yi = 0, 0
+
+    return (xi, yi)
+
+def fn9(x,y, width, height, 
+        lx:float = 1.5,
+        ly:float = 1.5, 
+        ox:int = 3,
+        oy:int = 3,
+        px:int = 0,
+        py:int = 0,
+        ) -> tuple[float, float]:
+    # function used in "napkin" generator
+
+    if x%ox <= px or y%oy <= py:
+        if x%ox <= px:
+            xi, yi = lx*(x), ly*(x-x%ox)
+        else:
+            xi, yi = lx*(y-y*oy), ly*(y)
+    else:
+        xi, yi = 0, 0
+
+    return (xi, yi)
 
 class Layer(NamedTuple):
     fn: 'function'
