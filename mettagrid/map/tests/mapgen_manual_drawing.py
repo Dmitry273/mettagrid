@@ -10,9 +10,9 @@ import os
 w = 180
 h = 180
 
-for i in range(32):
+for i in range(1):
     register_resolvers()
-    config = OmegaConf.load('configs/game/map_builder/mapgen_simsam_cross_curse.yaml')
+    config = OmegaConf.load('configs/game/map_builder/mapgen_simsam_lattice_world.yaml')
 
     if OmegaConf.select(config, "root") is not None:
         root = config.root
@@ -21,7 +21,8 @@ for i in range(32):
         
     world_map = MapGen(w,h,root = root).build()
 
-    Image.fromarray((world_map == 'empty')).resize((400, 400*h//w)).save(f'{i}.png')
+    # Image.fromarray((world_map == 'empty')).save(f'{i}.png')
+    Image.fromarray((world_map == 'empty')).resize(((w+2)*(500//(w+2)), (h+2)*(500//(h+2)))).save(f'{i}.png')
 
 
 '''

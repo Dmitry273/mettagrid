@@ -42,15 +42,25 @@ def fn2(x,y, width, height, P, **args) -> tuple[float, float]:
 
     return (xi, yi)
 
-def fn3(x,y, width, height, **args) -> tuple[float, float]:
-    # currently unused
-    octave = [0.1,0.1]
-    if x%7 == 0 or y%3 == 0:
-        xi, yi = 1*x, 4*y
-    else:
-        xi, yi = -2*x, -5*y
+def fn3(x,y, width, height, 
+        lx:float = 1.5,
+        ly:float = 1.5, 
+        ox:int = 3,
+        oy:int = 3,
+        px:int = 0,
+        py:int = 0,
+        ) -> tuple[float, float]:
+    # function used in "lattice_world" generator
 
-    return (xi*octave[0], yi*octave[1])
+    if x%ox <= px or y%oy <= py:
+        if x%ox <= px:
+            xi, yi = lx*(x), ly*(y-y%oy)
+        else:
+            xi, yi = lx*(x-x*ox), ly*(y)
+    else:
+        xi, yi = 0, 0
+
+    return (xi, yi)
 
 def fn4(x, y, width, height,
         lx:float = 0.1,
