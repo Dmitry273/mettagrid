@@ -23,6 +23,25 @@ def fn0(x,y, width, height,
     # simple function to generate additional noise
     return (x*lx, y*ly)
 
+def fn0_1(x,y, width, height, 
+        zoom:float = 0.1, 
+        ell:float = 1.5, 
+        t:float = 0.25,
+        ) -> tuple[float, float]:
+    # function used in "noise" generator
+
+    alpha = 2*math.pi*t
+    cs = math.cos(alpha)
+    sn = math.sin(alpha)
+    xc = 0.0
+    yc = 0.0
+    xi, yi = ((cs*(x-(0.5+xc)*width) + sn*(y-(0.5+yc)*height))+(0.5+xc)*height), ((-sn*(x-(0.5+xc)*width) + cs*(y-(0.5+yc)*height))+(0.5+yc)*height)
+
+    xi = (xi-(0.5+xc)*width)*zoom**2 /ell
+    yi = (yi-(0.5+yc)*height)*zoom**2 *ell
+
+    return (xi, yi)
+
 def fn1(x,y, width, height, **args) -> tuple[float, float]:
     #currently unused
     octave = [0.1,0.1]
@@ -31,13 +50,25 @@ def fn1(x,y, width, height, **args) -> tuple[float, float]:
 
     return (xi, yi)
 
-def fn2(x,y, width, height, P, **args) -> tuple[float, float]:
-    # currently unused
-    octave = [0.1,0.1]
-    xi = (x-0.5*width)  * octave[0]
-    yi = (y-0.5*height) * octave[1]
+def fn2(x,y, width, height,
+        zoom:float = 0.1,           # global scaling
+        ell:float = 1.5,            # ellipticity
+        t:float = 0.25,             # angle of rotation in 2*pi radians
+        P:float = 2.0,              # thickness of the spiral
+        xc:float = 0.0,             # x off-center
+        yc:float = 0.0,             # y off-center
+        ) -> tuple[float, float]:
+    # function used in "spiral" generator
+    alpha = 2*math.pi*t
+    cs = math.cos(alpha)
+    sn = math.sin(alpha)
+    xi, yi = ((cs*(x-(0.5+xc)*width) + sn*(y-(0.5+yc)*height))+(0.5+xc)*height), ((-sn*(x-(0.5+xc)*width) + cs*(y-(0.5+yc)*height))+(0.5+yc)*height)
 
-    a = (math.pi / 4 * (math.sqrt(xi ** 2 + yi ** 2) * (2+P)))
+    a = math.sqrt(ell)
+    xi = (xi-(0.5+xc)*width)*zoom/a
+    yi = (yi-(0.5+yc)*height)*zoom*a
+
+    a = (math.pi / 4 * (math.sqrt(abs(xi**2 + yi**2)) * P))
     xi, yi = xi * math.cos(a) - yi * math.sin(a), yi * math.cos(a) + xi * math.sin(a)
 
     return (xi, yi)
@@ -161,7 +192,7 @@ def fn8(x,y, width, height,
         px:int = 0,
         py:int = 0,
         ) -> tuple[float, float]:
-    # function used in "napkin" generator
+    # function used in "tilted napkin" generator
 
     if (x+y)%ox <= px or (x-y)%oy <= py:
         if (x+y)%ox <= px:
@@ -188,6 +219,69 @@ def fn9(x,y, width, height,
             xi, yi = lx*(x), ly*(x-x%ox)
         else:
             xi, yi = lx*(y-y*oy), ly*(y)
+    else:
+        xi, yi = 0, 0
+
+    return (xi, yi)
+
+def fn10(x,y, width, height, 
+        lx:float = 1.5,
+        ly:float = 1.5, 
+        t:float = 0.0,
+        ox:int = 3,
+        oy:int = 3,
+        px:int = 0,
+        py:int = 0,
+        ) -> tuple[float, float]:
+    # function used in "arbitrary_tilted_lattice" generator
+    alpha = 2*math.pi*t
+    tg = math.tan(alpha)
+    line1 = math.floor(x+tg*y)
+    line2 = math.floor(tg*x-y)
+    if line1%ox <= px or line2%oy <= py:
+        if line1%ox <= px:
+            xi, yi = lx*line1, ly*(line2-line2%oy)
+        else:
+            xi, yi = lx*(line1-line1*ox), ly*line2
+    else:
+        xi, yi = 0, 0
+
+    return (xi, yi)
+
+def fn11(x,y, width, height, 
+        lx:float = 1.5,
+        ly:float = 1.5, 
+        t:float = 0.0,
+        ox:int = 3,
+        oy:int = 3,
+        px:int = 0,
+        py:int = 0,
+        ) -> tuple[float, float]:
+    # function used in "arbitrary_tilted_napkin" generator
+    alpha = 2*math.pi*t
+    tg = math.tan(alpha)
+    line1 = math.floor(x+tg*y)
+    line2 = math.floor(tg*x-y)
+    if line1%ox <= px or line2%oy <= py:
+        if line1%ox <= px:
+            xi, yi = lx*line1, ly*(line1-line1%ox)
+        else:
+            xi, yi = lx*(line2-line2*oy), ly*line2
+    else:
+        xi, yi = 0, 0
+
+    return (xi, yi)
+
+def fn12(x,y, width, height, 
+        lx:float = 1.5,
+        ly:float = 1.5, 
+        ) -> tuple[float, float]:
+    # currently unused
+    xi, yi = x-0.5*width, y-0.5*height
+    xi, yi = xi*lx, yi*ly
+    n = 5
+    if math.floor(math.sqrt(abs(xi**2+2*x*y+y**2)))%n == 0:
+        xi, yi = lx*(x), ly*(y)
     else:
         xi, yi = 0, 0
 

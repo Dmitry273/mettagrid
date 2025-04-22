@@ -12,7 +12,7 @@ h = 180
 
 for i in range(32):
     register_resolvers()
-    config = OmegaConf.load('configs/game/map_builder/mapgen_simsam_napkin_world.yaml')
+    config = OmegaConf.load('configs/game/map_builder/mapgen_simsam_noise.yaml')
 
     if OmegaConf.select(config, "root") is not None:
         root = config.root

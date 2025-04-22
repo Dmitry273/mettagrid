@@ -1,0 +1,28 @@
+_target_: mettagrid.map.mapgen.MapGen
+
+width: ${uniform:20,80,40}
+height: ${uniform:20,80,40}
+
+root:
+  _target_: mettagrid.map.scenes.room_grid.RoomGrid
+  rows: 3
+  columns: 3
+
+  children:
+  - scene:
+      _target_: mettagrid.map.scenes.simplex_sampler.SimplexSampler
+      layers:
+      - fn : mettagrid.map.scenes.simplex_sampler.fn0_1   # random noise
+        saturation: ${uniform:1.0,2.0}
+        params:
+          zoom: ${uniform:0.1,1.25}                  # global scaling
+          ell: ${uniform:1,10}                     # ellipticity
+          t: ${uniform:0,1}
+      - fn : mettagrid.map.scenes.simplex_sampler.fn0_1   # random noise
+        saturation: ${uniform:0.0,0.5}
+        params:
+          zoom: ${uniform:0.01,2.5}                  # global scaling
+          ell: ${uniform:1,10}                     # ellipticity
+          t: ${uniform:0,1}
+
+      cutoff: ${uniform:40,100}    

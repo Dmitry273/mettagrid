@@ -1,0 +1,31 @@
+_target_: mettagrid.map.mapgen.MapGen
+
+width: ${uniform:20,80,40}
+height: ${uniform:20,80,40}
+
+root:
+  _target_: mettagrid.map.scenes.room_grid.RoomGrid
+  rows: 3
+  columns: 3
+
+  children:
+  - scene:
+      _target_: mettagrid.map.scenes.simplex_sampler.SimplexSampler
+      layers:
+      - fn : mettagrid.map.scenes.simplex_sampler.fn2   # spiral sampler
+        saturation: ${choose:1,2,3,4,5}
+        params:
+          zoom: ${uniform:0.01,0.2}                       # global scaling
+          ell: ${triangular:1,1,5}                       # ellipticity
+          t: ${uniform:0,1}                             # tilt angle
+          P: ${triangular:0.5,3,10}                         # thickness of the spiral
+          xc: ${triangular:-0.6,0.0,0.6}                # x off-center
+          yc: ${triangular:-0.6,0.0,0.6}                # y off-center
+      - fn : mettagrid.map.scenes.simplex_sampler.fn0   # random noise
+        saturation: ${uniform:0.0,0.5}
+        params:
+          lx: ${uniform:0.01,0.5}                       # scaling along x
+          ly: ${uniform:0.01,0.5}                       # scaling along y
+
+      cutoff: ${uniform:40,100}                          # cutoff treshold less number -> less walls
+
