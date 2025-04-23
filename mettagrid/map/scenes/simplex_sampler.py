@@ -7,9 +7,11 @@ import numpy as np
 from mettagrid.map.scene import Scene
 from mettagrid.map.node import Node
 from mettagrid.map.utils.random import MaybeSeed
+from collections import deque, defaultdict
+from queue import PriorityQueue
 
 import math
-
+import time
 '''
 This file contains a set of functions that can be used to generate different types of noise patterns for terrain generation.
 The functions are designed to be used with the OpenSimplex noise generator, and they can be combined in various ways to create complex terrain features.
@@ -324,8 +326,8 @@ class SimplexSampler(Scene):
         terrain = self.normalize_array(terrain)                                         # sets min value as 0, max as 1 via appropriate rescaling
         terrain = (terrain * 255).astype('uint8')
 
+        self.fix_map(terrain)
         room = np.array(np.where(terrain > self.cutoff, self.EMPTY,self.WALL), dtype='<U50')
-        self.fix_map(room)
         grid[:] = room
     
     def normalize_array(self, room: np.ndarray) -> np.ndarray:
@@ -346,9 +348,8 @@ class SimplexSampler(Scene):
 
         return terrain
     
-    def fix_map(self, room: np.ndarray) -> None:
-        #find any empty cell as start
-        start = np.where(room == 'empty')
+    def fix_map(self, terrain: np.ndarray) -> None:
+        start = np.where(terrain > self.cutoff)
         if start[0].size == 0:
             return
         start = (start[0][0],start[1][0])
@@ -359,52 +360,49 @@ class SimplexSampler(Scene):
             if x >= self._width or y >= self._height:
                 return True
             return False
-        
         dir_list = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-        while True:
-            closed_set = {}
-            open_list_empty = [start]
-            open_list_wall = []
 
-            #find area border
-            while open_list_empty:
-                current = open_list_empty.pop(0)
-                if room[current[0], current[1]] == 'wall':
-                    open_list_wall.append(current)
+        distances = defaultdict(lambda: [float('inf'), tuple()])
+        distances[start] = [0, start]
+        front = PriorityQueue()
+        front.put((0, [start,start]))
+        seen = set()
+        seen.add(start)
+        # store energy position and how we got there
+
+        while not front.empty():
+            energy, pair = front.get()
+            current, previous = pair
+
+            for next_dir in dir_list:
+                next_pos = (current[0] + next_dir[0], current[1] + next_dir[1])
+                if out_of_bound(next_pos[0], next_pos[1]):
                     continue
-                for next_dir in dir_list:
-                    next_pos = (current[0] + next_dir[0], current[1] + next_dir[1])
-                    if out_of_bound(next_pos[0], next_pos[1]):
-                        continue
-                    if next_pos in closed_set:
-                        continue
-                    closed_set[next_pos] = 1
-                    open_list_empty.append(next_pos)
+                if terrain[next_pos[0]][next_pos[1]] <= self.cutoff:
+                    current_energy = energy + 1 + self.cutoff - terrain[next_pos[0]][next_pos[1]]
+                else:
+                    current_energy = energy
+                    if energy > 0 and next_pos not in seen:
+                        current_energy = 0
+                        distances[next_pos] = [current_energy, current]
+                        distances[current][0] = 0
+                        terrain[int(current[0])][int(current[1])] = 255  # type: ignore I don't know why it shows warnings there, but it works
+                        front.put((current_energy, [next_pos, current]))
+                        front.put((current_energy, [current, previous]))
+                        seen.add(next_pos)
 
-            #find another empty area
-            predecessor_map = {}
-            another_empty_cell = (-1, -1)
-            while open_list_wall:
-                current = open_list_wall.pop(0)
-                if room[current[0], current[1]] == 'empty':
-                    another_empty_cell = current
-                    break
-                for next_dir in dir_list:
-                    next_pos = (current[0] + next_dir[0], current[1] + next_dir[1])
-                    if out_of_bound(next_pos[0], next_pos[1]):
-                        continue
-                    if next_pos in closed_set:
-                        continue
-                    closed_set[next_pos] = 1
-                    predecessor_map[next_pos] = current
-                    open_list_wall.append(next_pos)
+                        while True:
+                            if distances[previous][0] == 0:
+                                break
+                            another = distances[previous][1]
+                            distances[previous][0] = 0
+                            front.put((0, [previous, distances[previous][1]]))
+                            terrain[int(previous[0])][int(previous[1])] = 255  # type: ignore
+                            previous = another                       
 
-            #cannot find another empty area, break
-            if another_empty_cell == (-1, -1):
-                break
-
-            #link two empty areas
-            while another_empty_cell in predecessor_map:
-                predecessor = predecessor_map[another_empty_cell]
-                room[predecessor[0]][predecessor[1]] = 'empty'
-                another_empty_cell = predecessor
+                if current_energy >= distances[next_pos][0]: # type: ignore
+                    continue
+                
+                distances[next_pos] = [current_energy, current]  # type: ignore
+                front.put((current_energy, [next_pos, current]))
+                seen.add(next_pos)
