@@ -1,34 +1,42 @@
 from mettagrid.map.mapgen import MapGen
 from omegaconf import OmegaConf
-import numpy as np
+
+# import numpy as np
 from mettagrid.resolvers import register_resolvers
 
 from PIL import Image
-import glob
-import os
+# import glob
+# import os
+
+'''
+It's a small script to quickly draw terrains
+'''
+
 
 w = 180
 h = 180
 
-for i in range(32):
+for i in range(1):
     register_resolvers()
-    config = OmegaConf.load('configs/game/map_builder/mapgen_simsam_symmetry.yaml')
+    config = OmegaConf.load("configs/game/map_builder/mapgen_simsam_symmetry.yaml")
 
     if OmegaConf.select(config, "root") is not None:
         root = config.root
     else:
         print("No root config found, using default maze")
-        
-    world_map = MapGen(w,h,root = root).build()
+
+    world_map = MapGen(w, h, root=root).build()
 
     # Image.fromarray((world_map == 'empty')).save(f'{i}.png')
-    Image.fromarray((world_map == 'empty')).resize(((w+2)*(500//(w+2)), (h+2)*(500//(h+2)))).save(f'{i}.png')
+    Image.fromarray((world_map == "empty")).resize(
+        ((w + 2) * (500 // (w + 2)), (h + 2) * (500 // (h + 2)))
+    ).save(f"{i}.png")
 
 
-'''
+"""
 This code generates a gif from the set of generated maps
 additional requirements: pip install pillow
-'''
+"""
 
 # def make_gif():
 #     frames = [Image.open(image) for image in sorted(glob.glob('/home/catnee/mettagrid/giffactory/*.png'), key=os.path.getmtime)]

@@ -1,7 +1,7 @@
 _target_: mettagrid.map.mapgen.MapGen
 
-width: ${uniform:20,80,40}
-height: ${uniform:20,80,40}
+width: ${int:${uniform:20,101}}
+height: ${int:${uniform:20,101}}
 
 root:
   _target_: mettagrid.map.scenes.room_grid.RoomGrid
@@ -12,17 +12,18 @@ root:
   - scene:
       _target_: mettagrid.map.scenes.simplex_sampler.SimplexSampler
       layers:
-      - fn : mettagrid.map.scenes.simplex_sampler.fn0_1   # random noise
+      - sampling_function : mettagrid.map.scenes.simsam_functions.squeezed_noise   # random noise
         saturation: ${uniform:1.0,2.0}
-        params:
-          zoom: ${uniform:0.1,1.25}                  # global scaling
-          ell: ${uniform:1,10}                     # ellipticity
-          t: ${uniform:0,1}
-      - fn : mettagrid.map.scenes.simplex_sampler.fn0_1   # random noise
+        function_parameters:
+          zoom: ${uniform:0.1,1.25}                                 # global scaling
+          squeeze: ${uniform:1,10}                                  # how squeezed the result is
+          angle_theta: ${uniform:0,1}                               # angle theta in 2pi radians: 0.25 is 90degrees, 0.125 is 45deg
+      - sampling_function : mettagrid.map.scenes.simsam_functions.squeezed_noise   # random noise
         saturation: ${uniform:0.0,0.5}
-        params:
-          zoom: ${uniform:0.01,2.5}                  # global scaling
-          ell: ${uniform:1,10}                     # ellipticity
-          t: ${uniform:0,1}
+        function_parameters:
+          zoom: ${uniform:0.01,2.5}                                 # global scaling
+          squeeze: ${uniform:1,10}                                  # how squeezed the result is
+          angle_theta: ${uniform:0,1}                               # angle theta in 2pi radians: 0.25 is 90degrees, 0.125 is 45deg
 
-      cutoff: ${uniform:40,100}    
+      cutoff: ${uniform:40,100}    # global cutoff threshold less number -> less walls
+      force_seed: 0 # 0 will use random seeds, any other integer will force the seed. Requires all above parameters to be fixed to produce identical results
